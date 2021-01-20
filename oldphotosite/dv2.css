@@ -1,0 +1,121 @@
+body {
+  	background-color:	white;
+	/* font-weight: bold; */
+	/*font-family: "Courier New", Courier, monospace;*/
+	font-family: Verdana,Arial,Helvetica,sans-serif;
+	font-size: 1em;
+	padding:50px;
+}
+
+img{  
+	border-style: none;
+	margin:0;padding:0
+	
+}
+
+li { 
+	margin-top: 1em; 
+	}
+
+ul{
+	margin-bottom: 2em; 
+}
+	
+
+#about{
+        font-size: 0.8em;
+}
+
+#aboutimage{
+	margin-bottom: 2em;
+}
+
+.indented{
+	padding-left: 	10px;
+}
+
+.textlink:link{
+	color:  			black;
+	text-decoration:    none;
+}
+
+.textlink:visited{
+	color:              black;
+	text-decoration:    none;
+}
+
+.textlinkul:link{
+	color:  			black;
+	text-decoration:    none;
+	border-bottom:      thin dotted black;
+}
+
+.textlinkul:visited{
+	color:              black;
+	text-decoration:    none;
+	border-bottom:      thin dotted black;
+}
+
+
+.textlinksilver:link{
+	color:  			#C0C0C0;
+	text-decoration:    none;
+}
+
+.textlinksilver:visited{
+	color:              #C0C0C0;
+	text-decoration:    none;
+}
+
+
+.textlinkgray:link{
+	color:  			gray;
+	text-decoration:    none;
+}
+
+.textlinkgray:visited{
+	color:              gray;
+	text-decoration:    none;
+}
+
+.sideimage{
+	width:			520px;
+	float:  		right;
+	padding-top: 	10px;
+	padding-right: 	10px;
+	padding-left: 	10px;
+}
+
+.gallerylogo{
+	padding-bottom: 	0px;
+}
+
+.underimagetext{
+	font-family:	"Times New Roman", georgia, serif;
+	font-style:		italic;
+	font-size: 		0.80em;
+	font-weight: 	normal;
+	color:			#666;
+}
+
+.colourgallery{
+	background-color:	black;
+	color:				white;
+}
+
+
+#phonephotocopy{
+	padding-left: 	40px;
+	font-family:	"Times New Roman", georgia, serif;
+	font-style:		italic;
+	font-size: 		1.0em;
+	font-weight: 	normal;
+	color:			#666;
+	line-height:     120%
+}
+
+#phonephotologo{
+	padding-left: 	40px;
+	padding-right: 	40px;
+	float:  		left;
+}
