@@ -1,6 +1,6 @@
 ---
 title: "AI-assisted Mini-Projects"
-image: "spore.jpg"
+image: "../Images/spore.jpg"
 links:
   - label: Estimate Area using a Grid 
     url: "https://mjoc.github.io/VibeCoded/grid_area.html"
