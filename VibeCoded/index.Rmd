@@ -1,0 +1,14 @@
+---
+title: "AI-assisted Mini-Projects"
+image: "spore.jpg"
+links:
+  - label: Estimate Area using a Grid 
+    url: "https://mjoc.github.io/VibeCoded/grid_area.html"
+
+output:
+  postcards::jolla_blue
+---
+ 
+Me prompted, AI created stuff. 
+
+Currently vibe-coding with Claude.

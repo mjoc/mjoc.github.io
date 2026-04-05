@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid Area Estimator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 16px 48px;
+      gap: 6px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 0.88rem;
+      color: #777;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .app {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 236px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+
+    select {
+      width: 100%;
+      padding: 9px 32px 9px 12px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: white;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    select:focus { border-color: #4a90e2; }
+
+    .slider-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .slider-label { font-size: 0.85rem; color: #666; }
+    .slider-val   { font-size: 1.05rem; font-weight: 700; color: #4a90e2; }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: #4a90e2;
+      cursor: pointer;
+    }
+
+    .slider-bounds {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #ccc;
+      margin-top: 3px;
+    }
+
+    /* Nudge pad */
+    .nudge-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 5px;
+    }
+
+    .nudge-btn {
+      aspect-ratio: 1;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 9px;
+      background: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s, border-color 0.1s, transform 0.08s;
+      color: #444;
+      user-select: none;
+    }
+    .nudge-btn:hover  { background: #f0f5ff; border-color: #4a90e2; color: #4a90e2; }
+    .nudge-btn:active { background: #deeaff; transform: scale(0.93); }
+    .nudge-empty      { /* grid placeholder */ }
+
+    .nudge-hint {
+      font-size: 0.69rem;
+      color: #ccc;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* Area display */
+    .area-card {
+      background: linear-gradient(135deg, #1a73e8 0%, #6c4ab6 100%);
+      border-radius: 12px;
+      padding: 20px 16px;
+      color: white;
+      text-align: center;
+    }
+    .area-fraction {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .area-count {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+    .area-div {
+      font-size: 1.6rem;
+      font-weight: 300;
+      opacity: 0.6;
+    }
+    .area-total {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      opacity: 0.55;
+    }
+    .area-eq-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .area-eq-label {
+      font-size: 0.75rem;
+      opacity: 0.65;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .area-number {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+    }
+    .area-label {
+      font-size: 0.65rem;
+      opacity: 0.55;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 12px;
+      font-size: 0.75rem;
+      color: #666;
+      align-items: center;
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    #canvas {
+      border-radius: 12px;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.13);
+      display: block;
+      background: white;
+      cursor: default;
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 236px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Grid Area Estimator</h1>
+<p class="subtitle">
+  Cells ≥ 50% covered by the shape are counted — adjust grid resolution to see convergence
+</p>
+
+<div class="app">
+  <div class="controls">
+
+    <div class="card">
+      <div class="section-title">Shape</div>
+      <select id="shapeSelect">
+        <option value="circle">Circle</option>
+        <option value="apple">Apple</option>
+        <option value="banana">Banana</option>
+        <option value="star">Star</option>
+        <option value="heart">Heart</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Grid resolution</div>
+      <div class="slider-row">
+        <span class="slider-label">n =</span>
+        <span class="slider-val" id="nLabel">20</span>
+      </div>
+      <input type="range" id="gridSlider" min="5" max="100" step="1" value="20">
+      <div class="slider-bounds"><span>5</span><span>100</span></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Nudge shape (1 px)</div>
+      <div class="nudge-pad">
+        <div class="nudge-empty"></div>
+        <button class="nudge-btn" id="btnUp"    title="Arrow Up">↑</button>
+        <div class="nudge-empty"></div>
+        <button class="nudge-btn" id="btnLeft"  title="Arrow Left">←</button>
+        <div class="nudge-empty"></div>
+        <button class="nudge-btn" id="btnRight" title="Arrow Right">→</button>
+        <div class="nudge-empty"></div>
+        <button class="nudge-btn" id="btnDown"  title="Arrow Down">↓</button>
+        <div class="nudge-empty"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+        <div class="nudge-hint" style="margin-top:0;">or use arrow keys</div>
+        <select id="nudgeStep" style="width:auto;padding:4px 24px 4px 8px;font-size:0.8rem;">
+          <option value="1">1 px</option>
+          <option value="5">5 px</option>
+          <option value="10" selected>10 px</option>
+          <option value="25">25 px</option>
+          <option value="50">50 px</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="right-panel">
+    <div class="area-card">
+      <div class="area-fraction">
+        <span class="area-count" id="areaCount">—</span>
+        <span class="area-div">/</span>
+        <span class="area-total" id="areaTotal">—</span>
+      </div>
+      <div class="area-label">filled cells / total cells</div>
+      <div class="area-eq-row">
+        <span class="area-eq-label">= </span>
+        <span class="area-number" id="areaNum">—</span>
+      </div>
+      <div class="area-label">normalised area</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Legend</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="legend">
+          <div class="legend-swatch" style="background:#fff;border:1.5px solid #ddd;"></div>
+          <span>Cell &lt; 50% covered — not counted</span>
+        </div>
+        <div class="legend">
+          <div class="legend-swatch" style="background:rgba(0,185,90,0.55);border:1.5px solid rgba(0,150,70,0.4);"></div>
+          <span>Cell ≥ 50% covered — counted</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Configuration ───────────────────────────────────────────────────────────
+  // The offscreen canvas is SCALE× larger than the display canvas.
+  // This ensures the shape has much higher resolution than even the finest grid
+  // (500×500), so nudging the shape 1 display-pixel can change the area estimate.
+
+  const DISPLAY = 600;  // display canvas side length (px)
+  const SCALE   = 5;    // offscreen resolution multiplier  → 3000×3000 px
+  const OFF     = DISPLAY * SCALE;
+
+  // ── Canvas setup ────────────────────────────────────────────────────────────
+  const offscreen = document.createElement('canvas');
+  offscreen.width  = OFF;
+  offscreen.height = OFF;
+  const octx = offscreen.getContext('2d', { willReadFrequently: true });
+
+  const canvas = document.getElementById('canvas');
+  canvas.width  = DISPLAY;
+  canvas.height = DISPLAY;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  // ── App state ───────────────────────────────────────────────────────────────
+  const state = {
+    shape: 'circle',
+    n:     20,
+    ox:    0,    // shape center offset — offscreen pixels, x
+    oy:    0,    // shape center offset — offscreen pixels, y
+  };
+
+  // ── Shape drawing functions ─────────────────────────────────────────────────
+  // Each function draws centered at (0, 0).
+  // The caller applies ctx.translate(OFF/2 + ox, OFF/2 + oy) before calling.
+  // Shapes are solid single-color fills so non-white pixel detection works cleanly.
+
+  const SHAPES = {
+
+    circle(ctx, sz) {
+      ctx.fillStyle = '#3a86ff';
+      ctx.beginPath();
+      ctx.arc(0, 0, sz * 0.33, 0, Math.PI * 2);
+      ctx.fill();
+    },
+
+    apple(ctx, sz) {
+      const s = sz * 0.33;
+
+      // Body — two-lobed apple silhouette via bezier path
+      ctx.fillStyle = '#e63946';
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.28);
+      ctx.bezierCurveTo( s*0.05, -s*0.78,  s*0.88, -s*0.78,  s*0.82,  s*0.12);
+      ctx.bezierCurveTo( s*0.76,  s*0.68,  s*0.38,  s*0.98,       0,  s*0.92);
+      ctx.bezierCurveTo(-s*0.38,  s*0.98, -s*0.76,  s*0.68, -s*0.82,  s*0.12);
+      ctx.bezierCurveTo(-s*0.88, -s*0.78, -s*0.05, -s*0.78,       0, -s*0.28);
+      ctx.closePath();
+      ctx.fill();
+
+      // Stem
+      ctx.strokeStyle = '#6b3a2a';
+      ctx.lineWidth = sz * 0.013;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.28);
+      ctx.quadraticCurveTo(s * 0.38, -s * 0.95, s * 0.12, -s * 1.15);
+      ctx.stroke();
+
+      // Leaf
+      ctx.fillStyle = '#27ae60';
+      ctx.save();
+      ctx.translate(s * 0.08, -s * 0.76);
+      ctx.rotate(0.5);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s * 0.30, s * 0.11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    },
+
+    banana(ctx, sz) {
+      const r = sz * 0.28;
+
+      ctx.fillStyle = '#f9d71c';
+      ctx.save();
+      ctx.rotate(-0.2);  // slight tilt
+
+      // Crescent-shaped banana silhouette
+      ctx.beginPath();
+      ctx.moveTo(-r, r * 0.15);
+      // Outer (top) arc
+      ctx.bezierCurveTo(-r * 0.75, -r * 0.85,  r * 0.75, -r * 0.85,  r,        r * 0.15);
+      // Right tip
+      ctx.bezierCurveTo( r * 1.06,  r * 0.38,  r * 0.92,  r * 0.52,  r * 0.76, r * 0.46);
+      // Inner (bottom) arc
+      ctx.bezierCurveTo( r * 0.48, -r * 0.30, -r * 0.48, -r * 0.30, -r * 0.76, r * 0.46);
+      // Left tip
+      ctx.bezierCurveTo(-r * 0.92,  r * 0.52, -r * 1.06,  r * 0.38, -r,        r * 0.15);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#c8a200';
+      ctx.lineWidth = sz * 0.006;
+      ctx.stroke();
+
+      ctx.restore();
+    },
+
+    star(ctx, sz) {
+      const R = sz * 0.38;   // outer radius
+      const r = R  * 0.42;   // inner radius
+      ctx.fillStyle = '#f4a118';
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const angle = i * Math.PI / 5 - Math.PI / 2;
+        const rad   = i % 2 === 0 ? R : r;
+        i === 0
+          ? ctx.moveTo(Math.cos(angle) * rad, Math.sin(angle) * rad)
+          : ctx.lineTo(Math.cos(angle) * rad, Math.sin(angle) * rad);
+      }
+      ctx.closePath();
+      ctx.fill();
+    },
+
+    heart(ctx, sz) {
+      const s = sz * 0.33;
+      ctx.fillStyle = '#e91e63';
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.38);
+      // Right lobe
+      ctx.bezierCurveTo( s*0.05, -s,      s,  -s,       s,  -s * 0.18);
+      // Right lower curve to bottom point
+      ctx.bezierCurveTo( s,       s*0.38,  s*0.48, s*0.80, 0,  s * 1.18);
+      // Left lower curve
+      ctx.bezierCurveTo(-s*0.48,  s*0.80, -s,      s*0.38, -s, -s * 0.18);
+      // Left lobe
+      ctx.bezierCurveTo(-s,      -s,      -s*0.05, -s,      0,  -s * 0.38);
+      ctx.closePath();
+      ctx.fill();
+    },
+
+  };
+
+  // ── Rendering pipeline ──────────────────────────────────────────────────────
+
+  let offData = null;  // cached ImageData — refreshed whenever shape/offset changes
+
+  function drawOffscreen() {
+    octx.fillStyle = '#ffffff';
+    octx.fillRect(0, 0, OFF, OFF);
+    octx.save();
+    octx.translate(OFF / 2 + state.ox, OFF / 2 + state.oy);
+    SHAPES[state.shape](octx, OFF);
+    octx.restore();
+    offData = octx.getImageData(0, 0, OFF, OFF);
+  }
+
+  // Count filled cells using the ≥50% pixel-coverage threshold.
+  function computeFilled() {
+    const n      = state.n;
+    const cellPx = OFF / n;   // cell size in offscreen pixels (may be fractional)
+    const px     = offData.data;
+    const filled = new Uint8Array(n * n);
+    let count = 0;
+
+    for (let row = 0; row < n; row++) {
+      const y0 = Math.round(row       * cellPx);
+      const y1 = Math.round((row + 1) * cellPx);
+      for (let col = 0; col < n; col++) {
+        const x0 = Math.round(col       * cellPx);
+        const x1 = Math.round((col + 1) * cellPx);
+
+        let colored = 0, total = 0;
+        for (let y = y0; y < y1; y++) {
+          const rowBase = y * OFF;
+          for (let x = x0; x < x1; x++) {
+            const i = (rowBase + x) * 4;
+            // Non-white pixel — threshold at 250 to tolerate anti-aliasing
+            if (px[i] < 250 || px[i+1] < 250 || px[i+2] < 250) colored++;
+            total++;
+          }
+        }
+
+        if (total > 0 && colored / total >= 0.5) {
+          filled[row * n + col] = 1;
+          count++;
+        }
+      }
+    }
+
+    return { filled, count };
+  }
+
+  let showShape = true;
+
+  canvas.addEventListener('click', () => {
+    showShape = !showShape;
+    canvas.title = showShape ? 'Click to hide shape' : 'Click to show shape';
+    render();
+  });
+  canvas.style.cursor = 'pointer';
+  canvas.title = 'Click to hide shape';
+
+  function render() {
+    const n     = state.n;
+    const cellD = DISPLAY / n;       // cell size on display canvas (px)
+    const { filled, count } = computeFilled();
+
+    // 1. Draw the (scaled-down) offscreen shape image, or plain white if hidden
+    if (showShape) {
+      ctx.drawImage(offscreen, 0, 0, DISPLAY, DISPLAY);
+    } else {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, DISPLAY, DISPLAY);
+    }
+
+    // 2. Overlay filled cells: blend green tint via ImageData (avoids fillRect overhead)
+    const imgData = ctx.getImageData(0, 0, DISPLAY, DISPLAY);
+    const d = imgData.data;
+
+    // Precompute column→cell lookup to avoid repeated division in the inner loop
+    const colMap = new Int32Array(DISPLAY);
+    for (let x = 0; x < DISPLAY; x++) colMap[x] = Math.min(x / cellD | 0, n - 1);
+
+    for (let py = 0; py < DISPLAY; py++) {
+      const row     = Math.min(py / cellD | 0, n - 1);
+      const rowBase = row * n;
+      const pixBase = py  * DISPLAY;
+      for (let px = 0; px < DISPLAY; px++) {
+        if (filled[rowBase + colMap[px]]) {
+          const i = (pixBase + px) * 4;
+          // Blend: result = existing*0.60 + green(0,185,90)*0.40
+          d[i]   =  d[i]   * 0.60            | 0;
+          d[i+1] = (d[i+1] * 0.60) + 74      | 0;   // 185*0.40 = 74
+          d[i+2] = (d[i+2] * 0.60) + 36      | 0;   //  90*0.40 = 36
+        }
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // 3. Grid lines — single compound path for performance
+    //    Opacity fades at very fine grids so the lines don't obscure the overlay
+    const lineOpacity = Math.max(0.03, Math.min(0.5, cellD / 8));
+    ctx.strokeStyle = `rgba(0,0,0,${lineOpacity})`;
+    ctx.lineWidth   = 0.5;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const p = i * cellD;
+      ctx.moveTo(p, 0); ctx.lineTo(p, DISPLAY);
+      ctx.moveTo(0, p); ctx.lineTo(DISPLAY, p);
+    }
+    ctx.stroke();
+
+    // 4. Update stats panel
+    const total = n * n;
+    const area  = count / total;
+    document.getElementById('areaCount').textContent = count.toLocaleString();
+    document.getElementById('areaTotal').textContent = total.toLocaleString();
+    document.getElementById('areaNum').textContent   = area.toFixed(4);
+  }
+
+  // Full update: redraw offscreen then render
+  function update() {
+    drawOffscreen();
+    render();
+  }
+
+  // ── Event wiring ────────────────────────────────────────────────────────────
+
+  document.getElementById('shapeSelect').addEventListener('change', e => {
+    state.shape = e.target.value;
+    state.ox    = 0;
+    state.oy    = 0;
+    update();
+  });
+
+  document.getElementById('gridSlider').addEventListener('input', function () {
+    state.n = +this.value;
+    document.getElementById('nLabel').textContent = state.n;
+    render();   // offscreen unchanged; only grid computation needs to rerun
+  });
+
+  // Nudge: step display pixels = step*SCALE offscreen pixels
+  function nudge(dx, dy) {
+    const step = +document.getElementById('nudgeStep').value;
+    state.ox += dx * step * SCALE;
+    state.oy += dy * step * SCALE;
+    update();
+  }
+
+  document.getElementById('btnUp').addEventListener('click',    () => nudge( 0, -1));
+  document.getElementById('btnDown').addEventListener('click',  () => nudge( 0,  1));
+  document.getElementById('btnLeft').addEventListener('click',  () => nudge(-1,  0));
+  document.getElementById('btnRight').addEventListener('click', () => nudge( 1,  0));
+
+  document.addEventListener('keydown', e => {
+    const map = {
+      ArrowUp: [0,-1], ArrowDown: [0,1],
+      ArrowLeft: [-1,0], ArrowRight: [1,0],
+    };
+    if (e.key in map) {
+      e.preventDefault();
+      nudge(...map[e.key]);
+    }
+  });
+
+  // ── Boot ────────────────────────────────────────────────────────────────────
+  update();
+</script>
+
+</body>
+</html>
