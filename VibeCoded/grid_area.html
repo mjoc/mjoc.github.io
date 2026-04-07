@@ -32,20 +32,24 @@
       text-align: center;
     }
 
+    /* ── Desktop layout: 3-column CSS Grid ── */
     .app {
-      display: flex;
+      display: grid;
+      grid-template-columns: 236px minmax(auto, 600px) 236px;
+      grid-template-rows: auto;
       gap: 20px;
-      align-items: flex-start;
-      flex-wrap: wrap;
+      align-items: start;
       justify-content: center;
+      width: 100%;
     }
 
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      width: 236px;
-    }
+    #card-shape  { grid-column: 1; grid-row: 1; }
+    #card-grid   { grid-column: 1; grid-row: 2; }
+    #card-nudge  { grid-column: 1; grid-row: 3; }
+    #canvas      { grid-column: 2; grid-row: 1 / span 5; justify-self: center; }
+    #card-area   { grid-column: 3; grid-row: 1; }
+    #card-legend { grid-column: 3; grid-row: 2; }
+    #card-tip    { grid-column: 3; grid-row: 3; }
 
     .card {
       background: white;
@@ -214,14 +218,30 @@
       box-shadow: 0 2px 18px rgba(0,0,0,0.13);
       display: block;
       background: white;
-      cursor: default;
+      cursor: pointer;
+      width: 600px;
+      height: 600px;
     }
 
-    .right-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      width: 236px;
+    /* ── Mobile layout ── */
+    @media (max-width: 720px) {
+      body { padding: 20px 12px 40px; }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 14px;
+      }
+
+      #card-area   { order: 1; }
+      #card-grid   { order: 2; }
+      #canvas      { order: 3; width: 100%; height: auto; aspect-ratio: 1; }
+      #card-shape  { order: 4; }
+      #card-nudge  { order: 5; }
+      #card-legend { order: 6; }
+      #card-tip    { order: 7; }
     }
   </style>
 </head>
@@ -233,91 +253,86 @@
 </p>
 
 <div class="app">
-  <div class="controls">
 
-    <div class="card">
-      <div class="section-title">Shape</div>
-      <select id="shapeSelect">
-        <option value="circle">Circle</option>
-        <option value="apple">Apple</option>
-        <option value="banana">Banana</option>
-        <option value="star">Star</option>
-        <option value="heart">Heart</option>
+  <div class="card" id="card-shape">
+    <div class="section-title">Shape</div>
+    <select id="shapeSelect">
+      <option value="circle">Circle</option>
+      <option value="apple">Apple</option>
+      <option value="banana">Banana</option>
+      <option value="star">Star</option>
+      <option value="heart">Heart</option>
+    </select>
+  </div>
+
+  <div class="card" id="card-grid">
+    <div class="section-title">Grid resolution</div>
+    <div class="slider-row">
+      <span class="slider-label">n =</span>
+      <span class="slider-val" id="nLabel">20</span>
+    </div>
+    <input type="range" id="gridSlider" min="5" max="100" step="1" value="20">
+    <div class="slider-bounds"><span>5</span><span>100</span></div>
+  </div>
+
+  <div class="card" id="card-nudge">
+    <div class="section-title">Nudge shape (1 px)</div>
+    <div class="nudge-pad">
+      <div class="nudge-empty"></div>
+      <button class="nudge-btn" id="btnUp"    title="Arrow Up">↑</button>
+      <div class="nudge-empty"></div>
+      <button class="nudge-btn" id="btnLeft"  title="Arrow Left">←</button>
+      <div class="nudge-empty"></div>
+      <button class="nudge-btn" id="btnRight" title="Arrow Right">→</button>
+      <div class="nudge-empty"></div>
+      <button class="nudge-btn" id="btnDown"  title="Arrow Down">↓</button>
+      <div class="nudge-empty"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+      <div class="nudge-hint" style="margin-top:0;">or use arrow keys</div>
+      <select id="nudgeStep" style="width:auto;padding:4px 24px 4px 8px;font-size:0.8rem;">
+        <option value="1">1 px</option>
+        <option value="5">5 px</option>
+        <option value="10" selected>10 px</option>
+        <option value="25">25 px</option>
+        <option value="50">50 px</option>
       </select>
     </div>
-
-    <div class="card">
-      <div class="section-title">Grid resolution</div>
-      <div class="slider-row">
-        <span class="slider-label">n =</span>
-        <span class="slider-val" id="nLabel">20</span>
-      </div>
-      <input type="range" id="gridSlider" min="5" max="100" step="1" value="20">
-      <div class="slider-bounds"><span>5</span><span>100</span></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Nudge shape (1 px)</div>
-      <div class="nudge-pad">
-        <div class="nudge-empty"></div>
-        <button class="nudge-btn" id="btnUp"    title="Arrow Up">↑</button>
-        <div class="nudge-empty"></div>
-        <button class="nudge-btn" id="btnLeft"  title="Arrow Left">←</button>
-        <div class="nudge-empty"></div>
-        <button class="nudge-btn" id="btnRight" title="Arrow Right">→</button>
-        <div class="nudge-empty"></div>
-        <button class="nudge-btn" id="btnDown"  title="Arrow Down">↓</button>
-        <div class="nudge-empty"></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
-        <div class="nudge-hint" style="margin-top:0;">or use arrow keys</div>
-        <select id="nudgeStep" style="width:auto;padding:4px 24px 4px 8px;font-size:0.8rem;">
-          <option value="1">1 px</option>
-          <option value="5">5 px</option>
-          <option value="10" selected>10 px</option>
-          <option value="25">25 px</option>
-          <option value="50">50 px</option>
-        </select>
-      </div>
-    </div>
-
   </div>
 
   <canvas id="canvas"></canvas>
 
-  <div class="right-panel">
-    <div class="area-card">
-      <div class="area-fraction">
-        <span class="area-count" id="areaCount">—</span>
-        <span class="area-div">/</span>
-        <span class="area-total" id="areaTotal">—</span>
-      </div>
-      <div class="area-label">filled cells / total cells</div>
-      <div class="area-eq-row">
-        <span class="area-eq-label">= </span>
-        <span class="area-number" id="areaNum">—</span>
-      </div>
-      <div class="area-label">normalised area</div>
+  <div class="area-card" id="card-area">
+    <div class="area-fraction">
+      <span class="area-count" id="areaCount">—</span>
+      <span class="area-div">/</span>
+      <span class="area-total" id="areaTotal">—</span>
     </div>
+    <div class="area-label">filled cells / total cells</div>
+    <div class="area-eq-row">
+      <span class="area-eq-label">= </span>
+      <span class="area-number" id="areaNum">—</span>
+    </div>
+    <div class="area-label">normalised area</div>
+  </div>
 
-    <div class="card">
-      <div class="section-title">Legend</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div class="legend">
-          <div class="legend-swatch" style="background:#fff;border:1.5px solid #ddd;"></div>
-          <span>Cell &lt; 50% covered — not counted</span>
-        </div>
-        <div class="legend">
-          <div class="legend-swatch" style="background:rgba(0,185,90,0.55);border:1.5px solid rgba(0,150,70,0.4);"></div>
-          <span>Cell ≥ 50% covered — counted</span>
-        </div>
+  <div class="card" id="card-legend">
+    <div class="section-title">Legend</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="legend">
+        <div class="legend-swatch" style="background:#fff;border:1.5px solid #ddd;"></div>
+        <span>Cell &lt; 50% covered — not counted</span>
+      </div>
+      <div class="legend">
+        <div class="legend-swatch" style="background:rgba(0,185,90,0.55);border:1.5px solid rgba(0,150,70,0.4);"></div>
+        <span>Cell ≥ 50% covered — counted</span>
       </div>
     </div>
+  </div>
 
-    <div class="card" style="font-size:0.8rem;color:#888;line-height:1.5;">
-      <strong style="color:#555;display:block;margin-bottom:4px;">Tip</strong>
-      Click the canvas to hide or re-show the shape.
-    </div>
+  <div class="card" id="card-tip" style="font-size:0.8rem;color:#888;line-height:1.5;">
+    <strong style="color:#555;display:block;margin-bottom:4px;">Tip</strong>
+    Click the canvas to hide or re-show the shape.
   </div>
 
 </div>
@@ -519,7 +534,6 @@
     canvas.title = showShape ? 'Click to hide shape' : 'Click to show shape';
     render();
   });
-  canvas.style.cursor = 'pointer';
   canvas.title = 'Click to hide shape';
 
   function render() {
